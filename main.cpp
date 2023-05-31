@@ -3,35 +3,27 @@ using namespace std;
 
 string encrypt(const string &s, int key)
 {
-    string res = "";
-    for (int i = 0; i < s.length(); i++)
-    {
-        if (isupper(s[i]))
-            res += char(int(s[i] + key - 65) % 26 + 65);
-        else
-            res += char(int(s[i] + key - 97) % 26 + 97);
+    string ciphertext;
+    for (char ch : s) {
+        if (std::isalpha(ch)) {
+            char base = std::isupper(ch) ? 'A' : 'a';
+            ch = (ch - base + key) % 26 + base;
+        }
+        ciphertext += ch;
     }
-    return res;
+    return ciphertext;
 }
 
 string decrypt(const string &s, int key)
 {
-    string res = "";
-    for (int i = 0; i < s.length(); i++)
-    {
-        if (isupper(s[i]))
-            res += char(int(s[i] - key - 65) % 26 + 65);
-        else
-            res += char(int(s[i] - key - 97) % 26 + 97);
-    }
-    return res;
+    return encrypt(s, 26 - key);
 }
 
 int generateKey()
 {
     std::random_device rd;                                       // Obtain a random seed from the hardware
     std::mt19937 gen(rd());                                      // Initialize a random number generator engine
-    std::uniform_int_distribution<int> distribution(1, 1000000); // Define the range of the random numbers
+    std::uniform_int_distribution<int> distribution(1, 26); // Define the range of the random numbers
 
     return distribution(gen);
 }
@@ -164,7 +156,7 @@ public:
 };
 
 set<string> database;
-int masterkey = 113;
+int masterkey = 13;
 class Person
 {
 protected:
@@ -222,18 +214,16 @@ public:
     friend Person *remove(Person *p);
 };
 
+int Godmode = 0;
+
 class Admin : public Person
 {
     string name;
     const int securitylevel;
 
 public:
-    static int Godmode;
     Admin(const string &username, const string &name, const string &password, const int &lvl) : Person(username, password), name(name), securitylevel(lvl) {}
-    void setName(const string &n)
-    {
-        Godmode++;
-    }
+    void setName(const string &n){}
     void display() override
     {
         cout << "Admin Information:" << endl;
@@ -250,6 +240,7 @@ public:
         if (database.find(encrypt(username, masterkey)) == database.end())
             ff << encrypt(username, masterkey) << endl;
         ff.close();
+        database.insert(encrypt(username, masterkey));
         ofstream f;
         f.open("Admin/" + encrypt(name, masterkey) + ".txt");
         if (!f.is_open())
@@ -263,7 +254,6 @@ public:
         f << encrypt(name, id) << endl;
     }
 };
-int Admin::Godmode = 0;
 
 class User : public Person
 {
@@ -540,10 +530,10 @@ Person *remove(Person *p)
     {
         User *u = dynamic_cast<User *>(p);
         ofstream f;
-        f.open("User/" + encrypt(u->username, u->id) + ".txt");
+        f.open("User/" + encrypt(u->username, masterkey) + ".txt");
         if (!f.is_open())
             throw SystemException("Error Accessing File, File deleting failed.");
-        remove(("User/" + encrypt(u->username, u->id) + ".txt").c_str());
+        remove(("User/" + encrypt(u->username, masterkey) + ".txt").c_str());
         delete u;
     }
     string name = p->username;
@@ -635,14 +625,14 @@ int main()
         while (getline(f, line))
         {
             line = decrypt(line, masterkey);
-            database.insert(line);
+            if(!line.empty()) database.insert(line);
         }
         f.close();
         Person *p = NULL;
         char choice;
         do
         {
-            if (!Admin::Godmode)
+            if (database.empty())
             {
                 int mas;
                 cout << "Welcome to your very own Information Management System!" << endl;
@@ -666,7 +656,7 @@ int main()
                     cout << "Admin already exists!" << endl;
                     cout << "Press any key to exit...";
                     cin.ignore();
-                    continue;
+                    return 0;
                 }
                 cout << "Enter admin password: ";
                 string pass;
@@ -677,8 +667,9 @@ int main()
                 p = &a;
                 cout << "Press any key to continue..." << endl;
                 cin.ignore();
+                return 0;
             }
-            if (!p)
+            if (p==nullptr)
             {
                 mainmenu();
                 cin >> choice;
@@ -711,13 +702,15 @@ int main()
                             cout << "Invalid password!" << endl;
                         else
                             cout << "Login successful!" << endl;
-                        cout << "Press any key to continue...";
+                        cout << "Press any key to continue..."<<endl;
                         cin.ignore();
                         break;
                     }
                     catch (const std::exception &e)
                     {
-                        std::cerr << e.what() << '\n';
+                        std::cout << e.what() << '\n';
+                        cout << "Press any key to continue...";
+                        cin.ignore();
                     }
 
                     break;
