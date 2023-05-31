@@ -4,8 +4,10 @@ using namespace std;
 string encrypt(const string &s, int key)
 {
     string ciphertext;
-    for (char ch : s) {
-        if (std::isalpha(ch)) {
+    for (char ch : s)
+    {
+        if (std::isalpha(ch))
+        {
             char base = std::isupper(ch) ? 'A' : 'a';
             ch = (ch - base + key) % 26 + base;
         }
@@ -21,8 +23,8 @@ string decrypt(const string &s, int key)
 
 int generateKey()
 {
-    std::random_device rd;                                       // Obtain a random seed from the hardware
-    std::mt19937 gen(rd());                                      // Initialize a random number generator engine
+    std::random_device rd;                                  // Obtain a random seed from the hardware
+    std::mt19937 gen(rd());                                 // Initialize a random number generator engine
     std::uniform_int_distribution<int> distribution(1, 26); // Define the range of the random numbers
 
     return distribution(gen);
@@ -223,7 +225,7 @@ class Admin : public Person
 
 public:
     Admin(const string &username, const string &name, const string &password, const int &lvl) : Person(username, password), name(name), securitylevel(lvl) {}
-    void setName(const string &n){}
+    void setName(const string &n) {}
     void display() override
     {
         cout << "Admin Information:" << endl;
@@ -414,14 +416,13 @@ int loadAdmin(const string &name, const string &password, Person *&p)
     string n;
     f >> n;
     n = decrypt(n, id);
-    Admin a(un, n, pass, lvl);
-    a.setName(n);
-    a.setResetKey(key);
-    a.setPassword(password);
+    p=new Admin (un, n, pass, lvl);
+    p->setResetKey(key);
+    p->setPassword(password);
     dd.setday(day);
     dd.setmonth(month);
     dd.setyear(year);
-    a.setdateadded(dd);
+    p->setdateadded(dd);
     f.close();
     return 0;
 }
@@ -466,15 +467,15 @@ int loadUser(const string &name, const string &password, Person *&p)
     sscanf(date.c_str(), "%d/%d/%d", &day, &month, &year);
     string nam;
     f >> nam;
-    User u(n, pass);
-    u.setResetKey(key);
-    u.setPassword(password);
+    p=new User (n, pass);
+    dynamic_cast<User *>(p)->setResetKey(key);
+    dynamic_cast<User *>(p)->setPassword(password);
     dd.setday(day);
     dd.setmonth(month);
     dd.setyear(year);
-    u.setdateadded(dd);
+    p->setdateadded(dd);
     nam = decrypt(nam, id);
-    u.setName(name);
+    dynamic_cast<User *>(p)->setName(nam);
     string dob;
     f >> dob;
     dob = decrypt(dob, id);
@@ -482,35 +483,34 @@ int loadUser(const string &name, const string &password, Person *&p)
     dd.setday(day);
     dd.setmonth(month);
     dd.setyear(year);
-    u.setDob(dd);
+    dynamic_cast<User *>(p)->setDob(dd);
     string fathername;
     f >> fathername;
     fathername = decrypt(fathername, id);
-    u.setFathername(fathername);
+    dynamic_cast<User *>(p)->setFathername(fathername);
     string mothername;
     f >> mothername;
     mothername = decrypt(mothername, id);
     string g;
     f >> g;
     g = decrypt(g, id);
-    u.setGender(g);
-    u.setMothername(mothername);
+    dynamic_cast<User *>(p)->setGender(g);
+    dynamic_cast<User *>(p)->setMothername(mothername);
     string address;
     f >> address;
     address = decrypt(address, id);
-    u.setAddress(address);
+    dynamic_cast<User *>(p)->setAddress(address);
     string phonenumber;
     f >> phonenumber;
     phonenumber = decrypt(phonenumber, id);
     long ph;
     sscanf(phonenumber.c_str(), "%ld", &ph);
-    u.setPhonenumber(ph);
+    dynamic_cast<User *>(p)->setPhonenumber(ph);
     string email;
     f >> email;
     email = decrypt(email, id);
-    u.setEmail(email);
+    dynamic_cast<User *>(p)->setEmail(email);
     f.close();
-    p = &u;
     return 0;
 }
 
@@ -625,15 +625,18 @@ int main()
         while (getline(f, line))
         {
             line = decrypt(line, masterkey);
-            if(!line.empty()) database.insert(line);
+            if (!line.empty())
+                database.insert(line);
         }
         f.close();
-        Person *p = NULL;
+        Person* p = NULL;
         char choice;
         do
         {
+            system("cls");
             if (database.empty())
             {
+                system("cls");
                 int mas;
                 cout << "Welcome to your very own Information Management System!" << endl;
                 cout << "--------------------------------------------------------" << endl;
@@ -661,22 +664,23 @@ int main()
                 cout << "Enter admin password: ";
                 string pass;
                 cin >> pass;
-                Admin a(name, name, pass, 1);
-                a.save();
+                p=new Admin(name, name, pass, 1);
                 cout << "Admin account created successfully!" << endl;
-                p = &a;
+                p->save();
                 cout << "Press any key to continue..." << endl;
                 cin.ignore();
                 return 0;
             }
-            if (p==nullptr)
+            if (p == nullptr)
             {
+                system("cls");
                 mainmenu();
                 cin >> choice;
                 switch (choice)
                 {
                 case '0':
                 {
+                    system("cls");
                     cout << "Are you sure you want to exit? (Y/N): ";
                     char c;
                     cin >> c;
@@ -686,6 +690,7 @@ int main()
                 }
                 case '1':
                 {
+                    system("cls");
                     try
                     {
                         string name, password;
@@ -702,9 +707,8 @@ int main()
                             cout << "Invalid password!" << endl;
                         else
                             cout << "Login successful!" << endl;
-                        cout << "Press any key to continue..."<<endl;
+                        cout << "Press any key to continue..." << endl;
                         cin.ignore();
-                        break;
                     }
                     catch (const std::exception &e)
                     {
@@ -717,6 +721,7 @@ int main()
                 }
                 case '2':
                 {
+                    system("cls");
                     try
                     {
                         string name, password;
@@ -754,6 +759,7 @@ int main()
             }
             else if (dynamic_cast<Admin *>(p))
             {
+                system("cls");
                 Admin *a = dynamic_cast<Admin *>(p);
                 adminMenu(a);
                 cin >> choice;
@@ -761,6 +767,7 @@ int main()
                 {
                 case '0':
                 {
+                    system("cls");
                     cout << "Are you sure you want to exit? (Y/N): ";
                     char c;
                     cin >> c;
@@ -770,6 +777,7 @@ int main()
                 }
                 case '1':
                 {
+                    system("cls");
                     try
                     {
                         string name, password, confirm;
@@ -793,9 +801,11 @@ int main()
                         cout << "Press any key to continue...";
                         cin.ignore();
                     }
+                    break;
                 }
                 case '2':
                 {
+                    system("cls");
                     try
                     {
                         string name;
@@ -825,6 +835,7 @@ int main()
                 }
                 case '3':
                 {
+                    system("cls");
                     try
                     {
                         string name;
@@ -851,6 +862,7 @@ int main()
                 }
                 case '4':
                 {
+                    system("cls");
                     try
                     {
                         string name;
@@ -876,9 +888,10 @@ int main()
                 }
                 case '5':
                 {
+                    system("cls");
                     try
                     {
-                        if (a->getResetKey() == "")
+                        if (a->getResetKey().empty())
                         {
                             string k;
                             cout << "Enter reset key: ";
@@ -919,6 +932,7 @@ int main()
                 }
                 case '6':
                 {
+                    system("cls");
                     p->save();
                     p = nullptr;
                     cout << "Press any key to continue...";
@@ -936,6 +950,7 @@ int main()
             }
             else if (dynamic_cast<User *>(p))
             {
+                system("cls");
                 User *u = dynamic_cast<User *>(p);
                 userMenu(u);
                 cin >> choice;
@@ -943,6 +958,7 @@ int main()
                 {
                 case '0':
                 {
+                    system("cls");
                     cout << "Are you sure you want to exit? (Y/N): ";
                     char c;
                     cin >> c;
@@ -952,6 +968,7 @@ int main()
                 }
                 case '1':
                 {
+                    system("cls");
                     userchangemenu();
                     cin >> choice;
                     switch (choice)
@@ -1062,9 +1079,10 @@ int main()
                 }
                 case '2':
                 {
+                    system("cls");
                     try
                     {
-                        if (u->getResetKey() != "")
+                        if (u->getResetKey().empty())
                         {
                             string k;
                             cout << "Enter reset key: ";
@@ -1105,6 +1123,7 @@ int main()
                 }
                 case '3':
                 {
+                    system("cls");
                     try
                     {
                         u->display();
@@ -1132,7 +1151,7 @@ int main()
     catch (const std::exception &e)
     {
         std::cout << e.what() << '\n';
-        cout<<"Press any key to continue...";
+        cout << "Press any key to continue...";
         cin.ignore();
     }
 
